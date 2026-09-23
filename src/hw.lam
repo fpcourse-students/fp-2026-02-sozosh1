@@ -65,11 +65,11 @@ task 1.1 (предскажите результат)
 -- сверяясь с интерпретатором. Пользуйтесь законами (Y, fold, either), а не
 -- раскрытием определений.
 
-expect Y (K 5) = ...
-expect fold (cons 1 (cons 2 (cons 3 nil))) mult 1 = ...
-expect fold (cons 1 (cons 2 (cons 3 nil))) (\x r. x) 0 = ...
-expect fold (cons 2 (cons 3 nil)) (\x r. cons (mult x x) r) nil = ...
-expect either suc pred (inr 3) = ...
+expect Y (K 5) = 5
+expect fold (cons 1 (cons 2 (cons 3 nil))) mult 1 = 6 
+expect fold (cons 1 (cons 2 (cons 3 nil))) (\x r. x) 0 = 1
+expect fold (cons 2 (cons 3 nil)) (\x r. cons (mult x x) r) nil = cons 4 (cons 9 nil)
+expect either suc pred (inr 3) = 2
 
 
 task 1.2 (числа Фибоначчи без рекурсии)
@@ -77,7 +77,7 @@ task 1.2 (числа Фибоначчи без рекурсии)
 -- Это цикл с фиксированным числом итераций, как факториал из разминки на практике:
 -- natElim и состояние в паре.
 
-fib := ...
+fib := \n. fst (natElim n (\p. pair (snd p) (plus (fst p) (snd p))) (pair 0 1))
 check fib: normalizing, avoids Y
 expect fib 0 = 0
 expect fib 1 = 1
@@ -89,7 +89,7 @@ expect fib 7 = 13
 task 1.3 (рекурсивная функция: обратный отсчёт)
 -- Задайте через Y терм range n, строящий список [n, n-1, ..., 1]; range 0 = [].
 
-range := ...
+range := Y (\self n. if (isZero n) nil (cons n (self (pred n))))
 check range: uses Y
 expect range 0 = nil
 expect range 1 = cons 1 nil
@@ -100,17 +100,17 @@ task 1.4 (простые функции над списками)
 -- Задайте без Y: sum (сумма элементов), length (длина) и map f xs (список из
 -- результатов применения f к каждому элементу).
 
-sum := ...
+sum := \xs. fold xs plus 0
 check sum: normalizing, avoids Y
 expect sum (cons 1 (cons 2 (cons 3 nil))) = 6
 expect sum nil = 0
 
-length := ...
+length := \xs. fold xs (\x r. suc r) 0
 check length: normalizing, avoids Y
 expect length (cons 1 (cons 2 nil)) = 2
 expect length nil = 0
 
-map := ...
+map := \f xs. fold xs (\x r. cons (f x) r) nil
 check map: normalizing, avoids Y
 expect map suc (cons 1 (cons 2 nil)) = cons 2 (cons 3 nil)
 expect map isZero (cons 0 (cons 5 nil)) = cons true (cons false nil)
@@ -126,19 +126,19 @@ task 2.1 (арифметика без рекурсии)
 -- minus n m = k, если plus m k = n, иначе 0; lt n m = true при n < m;
 -- equal n m = true при n = m.
 
-minus := ...
+minus := \n m. natElim m pred n
 check minus: normalizing, avoids Y
 expect minus 5 2 = 3
 expect minus 2 5 = 0
 expect minus 4 4 = 0
 
-lt := ...
+lt := \n m. not (isZero (minus m n))
 check lt: normalizing, avoids Y
 expect lt 2 5 = true
 expect lt 5 2 = false
 expect lt 3 3 = false
 
-equal := ...
+equal := \n m. and (isZero (minus n m)) (isZero (minus m n))
 check equal: normalizing, avoids Y
 expect equal 3 3 = true
 expect equal 3 4 = false
@@ -177,12 +177,12 @@ expect last (cons 7 nil) = 7
 task 2.4 (пустота и склейка)
 -- Задайте без Y: isEmpty xs (true на пустом списке) и concat xs ys (склейка списков).
 
-isEmpty := ...
+isEmpty := \xs. xs (\x r. false) true
 check isEmpty: normalizing, avoids Y
 expect isEmpty nil = true
 expect isEmpty (cons 0 nil) = false
 
-concat := ...
+concat := \xs ys. fold xs cons ys
 check concat: normalizing, avoids Y
 expect concat (cons 1 (cons 2 nil)) (cons 3 nil) = cons 1 (cons 2 (cons 3 nil))
 expect concat nil (cons 3 nil) = cons 3 nil
